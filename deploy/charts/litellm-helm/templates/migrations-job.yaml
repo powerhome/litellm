@@ -5,8 +5,7 @@ kind: Job
 metadata:
   name: {{ include "litellm.fullname" . }}-migrations
   annotations:
-    argocd.argoproj.io/hook: PreSync
-    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation # delete old migration on a new deploy in case the migration needs to make updates
+    annotations: argocd.argoproj.io/sync-wave: "1"
     checksum/config: {{ toYaml .Values | sha256sum }}
 spec:
   template:
@@ -24,6 +23,10 @@ spec:
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           command: ["python", "litellm/proxy/prisma_migration.py"]
+          resources:
+            {{- with .Values.migrationJob.resources }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
           workingDir: "/app"
           env:
             {{- if .Values.db.useExisting }}
