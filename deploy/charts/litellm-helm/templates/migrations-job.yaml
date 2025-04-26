@@ -5,7 +5,7 @@ kind: Job
 metadata:
   name: {{ include "litellm.fullname" . }}-migrations
   annotations:
-    annotations: argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-wave: "1"
     checksum/config: {{ toYaml .Values | sha256sum }}
 spec:
   template:
