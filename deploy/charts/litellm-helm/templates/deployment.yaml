@@ -1,6 +1,8 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  annotations:
+  {{- toYaml .Values.deploymentAnnotations | nindent 4 }}
   name: {{ include "litellm.fullname" . }}
   annotations:
     argocd.argoproj.io/sync-wave: "2"
