@@ -55,7 +55,8 @@ from litellm.proxy.common_utils.http_parsing_utils import (
     _read_request_body,
     _safe_get_request_headers,
 )
-from litellm.proxy.utils import PrismaClient, ProxyLogging
+from litellm.proxy.litellm_pre_call_utils import clean_headers
+from litellm.proxy.utils import LiteLLMProxyRequestSetup, PrismaClient, ProxyLogging
 from litellm.secret_managers.main import get_secret_bool
 from litellm.types.services import ServiceTypes
 
@@ -590,9 +591,21 @@ async def _user_api_key_auth_builder(  # noqa: PLR0915
         _end_user_object = None
         end_user_params = {}
 
+        _headers = clean_headers(
+            request.headers,
+            litellm_key_header_name=(
+                general_settings.get("litellm_key_header_name")
+                if general_settings is not None
+                else None
+            ),
+        )
+
         end_user_id = get_end_user_id_from_request_body(
             request_data, _safe_get_request_headers(request)
         )
+        if end_user_id is None:
+            end_user_id = LiteLLMProxyRequestSetup.get_user_from_headers(_headers, general_settings)
+
         if end_user_id:
             try:
                 end_user_params["end_user_id"] = end_user_id
